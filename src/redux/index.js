@@ -7,13 +7,15 @@ import { persistStore, persistReducer } from 'redux-persist'
 import { createLogger } from 'redux-logger'
 
 import symbolsReducer, { symbolsSagas } from './symbols'
+import favoritesReducer, { favoritesSagas } from './favorites'
 
 const rootReducer = combineReducers({
   symbols: symbolsReducer,
+  favorites: favoritesReducer,
 })
 
 function* rootSaga() {
-  yield all([call(symbolsSagas)])
+  yield all([call(symbolsSagas), call(favoritesSagas)])
 }
 
 const persistConfig = {

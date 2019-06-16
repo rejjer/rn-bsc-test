@@ -1,0 +1,6 @@
+export * from './duck'
+export * from './sagas'
+export { default } from './duck'
+export { default as favoritesSagas } from './sagas'
+export { default as favoritesManagers } from './managers'
+export { default as favoritesSelectors } from './selectors'

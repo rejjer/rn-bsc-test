@@ -8,6 +8,11 @@ import {
   requestSymbols,
   changeSymbolsFilter,
 } from '../redux/symbols'
+import {
+  favoritesSelectors,
+  addToFavorites,
+  removeFromFavorites,
+} from '../redux/favorites'
 import ListItem from '../components/ListItem'
 import Loader from '../components/Loader'
 import { colors } from '../constants'
@@ -16,8 +21,12 @@ class TabList extends Component {
   static propTypes = {
     requestSymbols: PropTypes.func.isRequired,
     changeSymbolsFilter: PropTypes.func.isRequired,
-    isFetching: PropTypes.bool,
+    symbolsIsFetching: PropTypes.bool,
     data: PropTypes.array,
+    addToFavorites: PropTypes.func.isRequired,
+    removeFromFavorites: PropTypes.func.isRequired,
+    favoritesIsFetching: PropTypes.bool,
+    favoritesData: PropTypes.array,
   }
 
   constructor(props) {
@@ -38,8 +47,35 @@ class TabList extends Component {
     this.props.requestSymbols()
   }
 
+  _onPressFavorite = (symbol, name) => {
+    const { addToFavorites, removeFromFavorites } = this.props
+    if (!this._isFavorite(symbol)) {
+      addToFavorites({ symbol, name })
+    } else {
+      removeFromFavorites({ symbol })
+    }
+  }
+
+  _isFavorite = symbol => {
+    const { favoritesData } = this.props
+    let result = false
+    favoritesData.forEach(item => {
+      if (item.symbol === symbol) {
+        result = true
+      }
+    })
+    return result
+  }
+
   _renderItem = ({ item: { symbol = '', name = '' } }) => {
-    return <ListItem name={name} symbol={symbol} />
+    return (
+      <ListItem
+        name={name}
+        symbol={symbol}
+        isFavorite={this._isFavorite(symbol)}
+        onPressFavorite={this._onPressFavorite}
+      />
+    )
   }
 
   _keyExtractor = (item, index) => item.iexId || `${index}`
@@ -64,7 +100,12 @@ class TabList extends Component {
 
   render() {
     const { text } = this.state
-    const { data, isFetching } = this.props
+    const {
+      data,
+      symbolsIsFetching,
+      favoritesIsFetching,
+      favoritesData,
+    } = this.props
     return (
       <View style={styles.container}>
         <TextInput
@@ -75,15 +116,16 @@ class TabList extends Component {
         />
         <FlatList
           onRefresh={this._onRefresh}
-          refreshing={isFetching}
+          refreshing={symbolsIsFetching}
           data={data}
+          extraData={favoritesData}
           maxToRenderPerBatch={50}
           updateCellsBatchingPeriod={10}
           renderItem={this._renderItem}
           keyExtractor={this._keyExtractor}
           getItemLayout={this._getItemLayout}
         />
-        {!!isFetching && <Loader />}
+        {(symbolsIsFetching || favoritesIsFetching) && <Loader />}
       </View>
     )
   }
@@ -103,13 +145,17 @@ const styles = StyleSheet.create({
 })
 
 const mapStateToProps = R.applySpec({
-  isFetching: symbolsSelectors.getIsFetching,
+  symbolsIsFetching: symbolsSelectors.getIsFetching,
   data: symbolsSelectors.getFilteredData,
+  favoritesIsFetching: favoritesSelectors.getIsFetching,
+  favoritesData: favoritesSelectors.getData,
 })
 
 const mapDispatchToProps = {
   requestSymbols,
   changeSymbolsFilter,
+  addToFavorites,
+  removeFromFavorites,
 }
 
 export default connect(
