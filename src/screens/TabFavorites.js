@@ -29,11 +29,14 @@ class TabFavorites extends Component {
   }
 
   componentDidMount() {
-    this.props.requestQuotes()
+    this._requestQuotesIfNeded()
   }
 
-  _onRefresh = () => {
-    this.props.requestQuotes()
+  _requestQuotesIfNeded = () => {
+    const { favoritesData, requestQuotes } = this.props
+    if (favoritesData.length) {
+      requestQuotes()
+    }
   }
 
   _onPressFavorite = symbol => {
@@ -75,7 +78,7 @@ class TabFavorites extends Component {
     return (
       <View style={styles.container}>
         <FlatList
-          onRefresh={this._onRefresh}
+          onRefresh={this._requestQuotesIfNeded}
           refreshing={favoritesIsFetching}
           data={favoritesData}
           renderItem={this._renderItem}
